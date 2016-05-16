@@ -9,6 +9,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.ScrollPaneConstants;
+import java.awt.Dimension;
 
 public class CodeTextArea extends JPanel {
 
@@ -55,6 +56,7 @@ public class CodeTextArea extends JPanel {
 		lines_scrollPane.setViewportView(lines_textArea);
 		
 		text_scrollPane = new JScrollPane();
+		text_scrollPane.setPreferredSize(new Dimension(2, 200));
 		text_scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
 		text_scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		text_scrollPane.getViewport().addChangeListener(new ChangeListener() {

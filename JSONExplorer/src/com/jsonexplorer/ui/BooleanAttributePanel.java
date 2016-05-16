@@ -49,6 +49,7 @@ public class BooleanAttributePanel extends AttributePanel<Boolean> {
 			value_toggleButton.setText("True - click to set false");
 		else
 			value_toggleButton.setText("False - click to set true");
+		value_toggleButton.setSelected(b);
 	}
 	
 	public void setJSONAttribute(String name, Boolean o) {

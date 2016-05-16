@@ -254,9 +254,10 @@ public class MainForm implements ActionListener {
 		JSONObject jo;
 		JSONArray ja;
 		DefaultMutableTreeNode t;
-		Object o = ((JSONInheritance) dmtn.getUserObject()).getValue(), to;
+		JSONInheritance ji = (JSONInheritance) dmtn.getUserObject();
+		Object o = ji.getValue(), to;
 		if (o == JSONObject.NULL) {
-			t = new DefaultMutableTreeNode(null);
+			t = new DefaultMutableTreeNode(new JSONInheritance(JSONObject.NULL, ji.getKey(), ji.getParent(), JSONObject.NULL.toString()));
 			dmtn.add(t);
 		} else if (o instanceof JSONObject) {
 			jo = (JSONObject) o;
@@ -274,32 +275,32 @@ public class MainForm implements ActionListener {
 				dmtn.add(t);
 				appendJSONNodeView(t);
 			}
-		} else if (o instanceof String) {
-			t = new DefaultMutableTreeNode((String) o);
+		} else if ((o instanceof String) || (o instanceof Integer) || (o instanceof Float) || (o instanceof Double) || (o instanceof BigInteger) || (o instanceof BigDecimal) || (o instanceof Boolean)) {
+			t = new DefaultMutableTreeNode(new JSONInheritance(o, ji.getKey(), ji.getParent(), o.toString()));
 			dmtn.add(t);
-		} else if (o instanceof Integer) {
-			t = new DefaultMutableTreeNode((Integer) o);
-			dmtn.add(t);
-		} else if (o instanceof Float) {
-			t = new DefaultMutableTreeNode((Float) o);
-			dmtn.add(t);
-		} else if (o instanceof Double) {
-			t = new DefaultMutableTreeNode((Double) o);
-			dmtn.add(t);
-		} else if (o instanceof BigInteger) {
-			t = new DefaultMutableTreeNode((BigInteger) o);
-			dmtn.add(t);
-		} else if (o instanceof BigDecimal) {
-			t = new DefaultMutableTreeNode((BigDecimal) o);
-			dmtn.add(t);
-		} else if (o instanceof Boolean) {
-			t = new DefaultMutableTreeNode((Boolean) o);
-			dmtn.add(t);
-		}
+		} //else if (o instanceof Integer) {
+//			t = new DefaultMutableTreeNode(new JSONInheritance(o, ji.getKey(), ji.getParent(), o.toString()));
+//			dmtn.add(t);
+//		} else if (o instanceof Float) {
+//			t = new DefaultMutableTreeNode(new JSONInheritance(o, ji.getKey(), ji.getParent(), o.toString()));
+//			dmtn.add(t);
+//		} else if (o instanceof Double) {
+//			t = new DefaultMutableTreeNode(new JSONInheritance(o, ji.getKey(), ji.getParent(), o.toString()));
+//			dmtn.add(t);
+//		} else if (o instanceof BigInteger) {
+//			t = new DefaultMutableTreeNode(new JSONInheritance(o, ji.getKey(), ji.getParent(), o.toString()));
+//			dmtn.add(t);
+//		} else if (o instanceof BigDecimal) {
+//			t = new DefaultMutableTreeNode(new JSONInheritance(o, ji.getKey(), ji.getParent(), o.toString()));
+//			dmtn.add(t);
+//		} else if (o instanceof Boolean) {
+//			t = new DefaultMutableTreeNode(new JSONInheritance(o, ji.getKey(), ji.getParent(), o.toString()));
+//			dmtn.add(t);
+//		}
 	}
 
 	private void updateView() {
-		DefaultMutableTreeNode r = new DefaultMutableTreeNode(new JSONInheritance(root, null, null, "[Root]"));
+		DefaultMutableTreeNode r = new DefaultMutableTreeNode(new JSONInheritance(root, null, null, "[.]"));
 		appendJSONNodeView(r);
 		((DefaultTreeModel) json_tree.getModel()).setRoot(r);
 		if (root instanceof JSONObject)
@@ -311,25 +312,34 @@ public class MainForm implements ActionListener {
 	}
 
 	private void loadAttributeConfig(Object o) {
+		JSONInheritance ji;
+		Object t;
 		attribute_splitPane.setLeftComponent(json_attribute_config_label);
 		if (attribute_config_panel != null) {
 			attribute_config_panel.removeAll();
 			attribute_config_panel = null;
 		}
-		if (!(o instanceof JSONInheritance)) {
-			if (o == JSONObject.NULL)
+		if (o instanceof JSONInheritance) {
+			ji = (JSONInheritance)o;
+			t = ji.getValue();
+			if (t == JSONObject.NULL) {
 				attribute_config_panel = new AttributePanel<>();
-			else if (o instanceof JSONObject) {
-			} else if (o instanceof JSONArray) {
-			} else if (o instanceof String) {
+				attribute_config_panel.setJSONAttribute(ji.getKey().toString(), null);
+			}
+			else if (t instanceof JSONObject) {
+			} else if (t instanceof JSONArray) {
+			} else if (t instanceof String) {
 				attribute_config_panel = new StringAttributePanel();
-			} else if (o instanceof Integer) {
-			} else if (o instanceof Float) {
-			} else if (o instanceof Double) {
-			} else if (o instanceof BigInteger) {
-			} else if (o instanceof BigDecimal) {
-			} else if (o instanceof Boolean)
+				((StringAttributePanel)attribute_config_panel).setJSONAttribute(ji.getKey().toString(), (String) t);
+			} else if (t instanceof Integer) {
+			} else if (t instanceof Float) {
+			} else if (t instanceof Double) {
+			} else if (t instanceof BigInteger) {
+			} else if (t instanceof BigDecimal) {
+			} else if (t instanceof Boolean) {
 				attribute_config_panel = new BooleanAttributePanel();
+				((BooleanAttributePanel)attribute_config_panel).setJSONAttribute(ji.getKey().toString(), (Boolean) t);
+			}
 			attribute_splitPane.setLeftComponent(attribute_config_panel);
 		}
 	}

@@ -23,9 +23,15 @@ import javax.swing.JFileChooser;
 import javax.swing.JSeparator;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.MutableTreeNode;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.jsonexplorer.core.JSONInheritance;
+
+import javafx.util.Pair;
 
 import javax.swing.KeyStroke;
 import java.awt.event.KeyEvent;
@@ -40,14 +46,26 @@ import java.math.BigInteger;
 import java.awt.event.InputEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeSelectionEvent;
+import javax.swing.SwingConstants;
+import java.awt.Font;
+import java.awt.Dimension;
 
 public class MainForm implements ActionListener {
 
 	private JFrame frmJsonExplorer;
-	private JTree json_tree;
+	
 	private JSplitPane attribute_splitPane;
+	
+	private JTree json_tree;
+	
+	private JLabel json_attribute_config_label;
+	
+	private CodeTextArea json_raw_panel;
+	
 	private AttributePanel<?> attribute_config_panel = null;
+	
 	private Object root = new JSONObject();
+	
 	private static String load_file_name = null;
 
 	/**
@@ -87,17 +105,6 @@ public class MainForm implements ActionListener {
 		JSplitPane main_splitPane = new JSplitPane();
 		frmJsonExplorer.getContentPane().add(main_splitPane, BorderLayout.CENTER);
 
-		json_tree = new JTree();
-		json_tree.addTreeSelectionListener(new TreeSelectionListener() {
-			public void valueChanged(TreeSelectionEvent arg0) {
-				DefaultMutableTreeNode sn = (DefaultMutableTreeNode) json_tree.getLastSelectedPathComponent();
-				if (sn != null) {
-					loadAttributeConfig(sn.getUserObject());
-				}
-			}
-		});
-		main_splitPane.setLeftComponent(json_tree);
-
 		JPanel attribute_panel = new JPanel();
 		main_splitPane.setRightComponent(attribute_panel);
 		attribute_panel.setLayout(new BorderLayout(0, 0));
@@ -105,20 +112,28 @@ public class MainForm implements ActionListener {
 		attribute_splitPane = new JSplitPane();
 		attribute_splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
 		attribute_panel.add(attribute_splitPane, BorderLayout.CENTER);
-
-		JScrollPane attribute_json_scrollPane = new JScrollPane();
-		attribute_splitPane.setRightComponent(attribute_json_scrollPane);
-
-		JLabel attribute_json_name_lbl = new JLabel("JSON attribute name - from origin");
-		attribute_json_scrollPane.setColumnHeaderView(attribute_json_name_lbl);
-
-		JTextArea attribute_json_textArea = new JTextArea();
-		attribute_json_textArea.setFont(UIManager.getFont("CheckBoxMenuItem.font"));
-		attribute_json_scrollPane.setViewportView(attribute_json_textArea);
-
-		JTextArea attribute_json_lines_textArea = new JTextArea();
-		attribute_json_lines_textArea.setFont(UIManager.getFont("CheckBoxMenuItem.font"));
-		attribute_json_scrollPane.setRowHeaderView(attribute_json_lines_textArea);
+		
+		json_raw_panel = new CodeTextArea();
+		attribute_splitPane.setRightComponent(json_raw_panel);
+		
+		json_attribute_config_label = new JLabel("Select an attribute to edit");
+		json_attribute_config_label.setFont(new Font("Tahoma", Font.BOLD, 20));
+		json_attribute_config_label.setHorizontalAlignment(SwingConstants.CENTER);
+		attribute_splitPane.setLeftComponent(json_attribute_config_label);
+		
+		JScrollPane json_scrollPane = new JScrollPane();
+		json_scrollPane.setPreferredSize(new Dimension(200, 2));
+		main_splitPane.setLeftComponent(json_scrollPane);
+		
+		json_tree = new JTree();
+		json_tree.addTreeSelectionListener(new TreeSelectionListener() {
+			public void valueChanged(TreeSelectionEvent arg0) {
+				DefaultMutableTreeNode sn = (DefaultMutableTreeNode) json_tree.getLastSelectedPathComponent();
+				if (sn != null)
+					loadAttributeConfig(sn.getUserObject());
+			}
+		});
+		json_scrollPane.setViewportView(json_tree);
 
 		JMenuBar menuBar = new JMenuBar();
 		frmJsonExplorer.setJMenuBar(menuBar);
@@ -208,7 +223,6 @@ public class MainForm implements ActionListener {
 	private void showSaveFileDialog(Object o) {
 		JFileChooser jfc = new JFileChooser();
 		File f;
-		String l;
 		if (jfc.showSaveDialog(frmJsonExplorer) == JFileChooser.APPROVE_OPTION) {
 			f = jfc.getSelectedFile();
 			try (BufferedWriter bw = new BufferedWriter(new FileWriter(f))) {
@@ -236,61 +250,88 @@ public class MainForm implements ActionListener {
 		return ret;
 	}
 
-	private void appendJSONNodeView(DefaultMutableTreeNode dmtn, Object o) {
+	private void appendJSONNodeView(DefaultMutableTreeNode dmtn) {
 		JSONObject jo;
 		JSONArray ja;
 		DefaultMutableTreeNode t;
+		Object o = ((JSONInheritance) dmtn.getUserObject()).getValue(), to;
 		if (o == JSONObject.NULL) {
-			t = new DefaultMutableTreeNode("null");
+			t = new DefaultMutableTreeNode(null);
 			dmtn.add(t);
 		} else if (o instanceof JSONObject) {
 			jo = (JSONObject) o;
 			for (String i : jo.keySet()) {
-				t = new DefaultMutableTreeNode(i);
+				to = jo.get(i);
+				t = new DefaultMutableTreeNode(new JSONInheritance(to, i, o, "[" + i + "]"));
 				dmtn.add(t);
-				appendJSONNodeView(t, jo.get(i));
+				appendJSONNodeView(t);
 			}
 		} else if (o instanceof JSONArray) {
 			ja = (JSONArray) o;
 			for (int i = 0, count = ja.length(); i < count; i++) {
-				t = new DefaultMutableTreeNode("[" + i + "]");
+				to = ja.get(i);
+				t = new DefaultMutableTreeNode(new JSONInheritance(to, i, o, "[" + i + "]"));
 				dmtn.add(t);
-				appendJSONNodeView(t, ja.get(i));
+				appendJSONNodeView(t);
 			}
 		} else if (o instanceof String) {
-			t = new DefaultMutableTreeNode("\"" + ((String) o) + "\"");
+			t = new DefaultMutableTreeNode((String) o);
 			dmtn.add(t);
 		} else if (o instanceof Integer) {
-			t = new DefaultMutableTreeNode(((Integer) o).toString());
+			t = new DefaultMutableTreeNode((Integer) o);
 			dmtn.add(t);
 		} else if (o instanceof Float) {
-			t = new DefaultMutableTreeNode(((Float) o).toString());
+			t = new DefaultMutableTreeNode((Float) o);
 			dmtn.add(t);
 		} else if (o instanceof Double) {
-			t = new DefaultMutableTreeNode(((Double) o).toString());
+			t = new DefaultMutableTreeNode((Double) o);
 			dmtn.add(t);
 		} else if (o instanceof BigInteger) {
-			t = new DefaultMutableTreeNode(((BigInteger) o).toString());
+			t = new DefaultMutableTreeNode((BigInteger) o);
 			dmtn.add(t);
 		} else if (o instanceof BigDecimal) {
-			t = new DefaultMutableTreeNode(((BigDecimal) o).toString());
+			t = new DefaultMutableTreeNode((BigDecimal) o);
 			dmtn.add(t);
 		} else if (o instanceof Boolean) {
-			t = new DefaultMutableTreeNode(((Boolean) o).toString());
+			t = new DefaultMutableTreeNode((Boolean) o);
 			dmtn.add(t);
 		}
 	}
 
 	private void updateView() {
-		DefaultMutableTreeNode r = new DefaultMutableTreeNode("Root");
-		appendJSONNodeView(r, root);
+		DefaultMutableTreeNode r = new DefaultMutableTreeNode(new JSONInheritance(root, null, null, "[Root]"));
+		appendJSONNodeView(r);
 		((DefaultTreeModel) json_tree.getModel()).setRoot(r);
+		if (root instanceof JSONObject)
+			json_raw_panel.getTextArea().setText(((JSONObject)root).toString(4));
+		else if (root instanceof JSONArray)
+			json_raw_panel.getTextArea().setText(((JSONArray)root).toString(4));
+		else
+			json_raw_panel.getTextArea().setText("");
 	}
 
 	private void loadAttributeConfig(Object o) {
-		// Test
-		attribute_config_panel = new StringAttributePanel();
-		attribute_splitPane.setLeftComponent(attribute_config_panel);
+		attribute_splitPane.setLeftComponent(json_attribute_config_label);
+		if (attribute_config_panel != null) {
+			attribute_config_panel.removeAll();
+			attribute_config_panel = null;
+		}
+		if (!(o instanceof JSONInheritance)) {
+			if (o == JSONObject.NULL)
+				attribute_config_panel = new AttributePanel<>();
+			else if (o instanceof JSONObject) {
+			} else if (o instanceof JSONArray) {
+			} else if (o instanceof String) {
+				attribute_config_panel = new StringAttributePanel();
+			} else if (o instanceof Integer) {
+			} else if (o instanceof Float) {
+			} else if (o instanceof Double) {
+			} else if (o instanceof BigInteger) {
+			} else if (o instanceof BigDecimal) {
+			} else if (o instanceof Boolean)
+				attribute_config_panel = new BooleanAttributePanel();
+			attribute_splitPane.setLeftComponent(attribute_config_panel);
+		}
 	}
 
 	@Override

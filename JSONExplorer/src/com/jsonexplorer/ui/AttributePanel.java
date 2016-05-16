@@ -21,7 +21,7 @@ public class AttributePanel<T> extends JPanel {
 	 * Create the panel.
 	 */
 	public AttributePanel() {
-		//super();
+		super();
 		setBorder(new EmptyBorder(10, 10, 10, 10));
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[]{0, 0};

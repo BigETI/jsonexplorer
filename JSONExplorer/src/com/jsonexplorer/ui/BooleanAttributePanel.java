@@ -1,31 +1,49 @@
 package com.jsonexplorer.ui;
+
 import javax.swing.JToggleButton;
+
+import com.jsonexplorer.core.JSONInheritance;
+
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 
-public class BooleanAttributePanel extends AttributePanel<Boolean> {
+/**
+ * Class to handle boolean attributes in an UI
+ * 
+ * @author Ethem Kurt
+ *
+ */
+public class BooleanAttributePanel extends AttributePanel {
 
 	/**
-	 * 
+	 * Serial version UID
 	 */
 	private static final long serialVersionUID = 376014469331420923L;
-	
+
+	/**
+	 * Toggle button
+	 */
 	private JToggleButton value_toggleButton;
-	
+
+	/**
+	 * Boolean state
+	 */
 	private Boolean state = null;
 
 	/**
+	 * Constructor
+	 * 
 	 * Create the panel.
 	 */
-	public BooleanAttributePanel() {
-		super();
-		
+	public BooleanAttributePanel(JSONInheritance json_inheritance) {
+		super(json_inheritance);
+
 		value_toggleButton = new JToggleButton("Undefined");
 		value_toggleButton.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent arg0) {
-				switch(arg0.getStateChange()) {
+				switch (arg0.getStateChange()) {
 				case ItemEvent.SELECTED:
 					setJSONValue(true);
 					break;
@@ -42,7 +60,13 @@ public class BooleanAttributePanel extends AttributePanel<Boolean> {
 		gbc_value_toggleButton.gridy = 1;
 		add(value_toggleButton, gbc_value_toggleButton);
 	}
-	
+
+	/**
+	 * Set JSON value to UI
+	 * 
+	 * @param b
+	 *            boolean
+	 */
 	private void setJSONValue(boolean b) {
 		state = b;
 		if (b)
@@ -51,20 +75,14 @@ public class BooleanAttributePanel extends AttributePanel<Boolean> {
 			value_toggleButton.setText("False - click to set true");
 		value_toggleButton.setSelected(b);
 	}
-	
-	public void setJSONAttribute(String name, Boolean o) {
-		super.setJSONAttribute(name, o);
-		if (o == null)
-			setJSONValue(false);
-		else
-			setJSONValue(o);
-	}
-	
-	public Boolean getJSONAttribute() {
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.jsonexplorer.ui.AttributePanel#getAttributeValue()
+	 */
+	@Override
+	public Object getAttributeValue() {
 		return state;
-	}
-	
-	public void saveChanges() {
-		// Failsafe
 	}
 }

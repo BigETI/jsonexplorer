@@ -44,7 +44,7 @@ public abstract class Notifier<LT, T extends IEventArgs> {
 	/**
 	 * Remove all listeners
 	 */
-	public void clear() {
+	public void removeListeners() {
 		listeners.clear();
 	}
 

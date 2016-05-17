@@ -26,8 +26,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.jsonexplorer.core.JSONInheritance;
+import com.jsonexplorer.core.UndoRedoController;
 import com.jsonexplorer.event.AttributePanelEventArgs;
 import com.jsonexplorer.event.IAttributePanelListener;
+import com.jsonexplorer.event.IUndoRedoControllerListener;
+import com.jsonexplorer.event.UndoRedoControllerEventArgs;
 
 import javax.swing.KeyStroke;
 import java.awt.event.KeyEvent;
@@ -49,6 +52,10 @@ import java.awt.GridBagLayout;
 import javax.swing.JButton;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
+import javax.swing.JPopupMenu;
+import java.awt.Component;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 /**
  * Class for main entry amd application window
@@ -56,7 +63,7 @@ import java.awt.Insets;
  * @author Ethem Kurt
  *
  */
-public class MainForm implements ActionListener {
+public class MainForm implements ActionListener, IUndoRedoControllerListener<Object> {
 
 	/**
 	 * Application frame
@@ -97,6 +104,8 @@ public class MainForm implements ActionListener {
 	 * Root JSON object/array
 	 */
 	private Object root = new JSONObject();
+
+	private UndoRedoController<Object> undo_redo_controller = null;
 
 	/**
 	 * Command line load file name
@@ -252,6 +261,26 @@ public class MainForm implements ActionListener {
 		});
 		json_scrollPane.setViewportView(json_tree);
 
+		JPopupMenu popupMenu = new JPopupMenu();
+		addPopup(json_tree, popupMenu);
+
+		JMenuItem mntmRemoveNode = new JMenuItem("Remove node");
+		mntmRemoveNode.addActionListener(new ActionListener() {
+
+			/*
+			 * (non-Javadoc)
+			 * 
+			 * @see
+			 * java.awt.event.ActionListener#actionPerformed(java.awt.event.
+			 * ActionEvent)
+			 */
+			public void actionPerformed(ActionEvent e) {
+				//
+			}
+		});
+		mntmRemoveNode.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
+		popupMenu.add(mntmRemoveNode);
+
 		JMenuBar menuBar = new JMenuBar();
 		frmJsonExplorer.setJMenuBar(menuBar);
 
@@ -331,6 +360,22 @@ public class MainForm implements ActionListener {
 		mnFile.add(mntmFileSeparator_2);
 
 		mnFile.add(mntmExit);
+
+		JMenu mnEdit = new JMenu("Edit");
+		menuBar.add(mnEdit);
+
+		JMenuItem mntmUndo = new JMenuItem("Undo");
+		mntmUndo.setEnabled(false);
+		mntmUndo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_MASK));
+		mnEdit.add(mntmUndo);
+
+		JMenuItem mntmRedo = new JMenuItem("Redo");
+		mntmRedo.setEnabled(false);
+		mntmRedo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
+		mnEdit.add(mntmRedo);
+
+		undo_redo_controller = new UndoRedoController<>(mntmUndo, mntmRedo);
+		undo_redo_controller.addListener(this);
 
 		if (load_file_name == null)
 			updateView();
@@ -502,7 +547,7 @@ public class MainForm implements ActionListener {
 	private void hideAttributeConfig() {
 		attribute_splitPane.setLeftComponent(json_attribute_config_label);
 		if (attribute_config_panel != null) {
-			attribute_config_panel.getNotifier().clear();
+			attribute_config_panel.getNotifier().removeListeners();
 			attribute_config_panel.removeAll();
 			attribute_config_panel = null;
 		}
@@ -572,4 +617,81 @@ public class MainForm implements ActionListener {
 		System.exit(0);
 	}
 
+	/**
+	 * Add popup
+	 * 
+	 * @param component
+	 *            Component
+	 * @param popup
+	 *            Popup
+	 */
+	private static void addPopup(Component component, final JPopupMenu popup) {
+		component.addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				if (e.isPopupTrigger()) {
+					showMenu(e);
+				}
+			}
+
+			public void mouseReleased(MouseEvent e) {
+				if (e.isPopupTrigger()) {
+					showMenu(e);
+				}
+			}
+
+			private void showMenu(MouseEvent e) {
+				popup.show(e.getComponent(), e.getX(), e.getY());
+			}
+		});
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.jsonexplorer.event.IUndoRedoControllerListener#onCommit(com.
+	 * jsonexplorer.event.UndoRedoControllerEventArgs)
+	 */
+	@Override
+	public void onCommit(UndoRedoControllerEventArgs<Object> args) {
+		//
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.jsonexplorer.event.IUndoRedoControllerListener#onUndo(com.
+	 * jsonexplorer.event.UndoRedoControllerEventArgs)
+	 */
+	@Override
+	public void onUndo(UndoRedoControllerEventArgs<Object> args) {
+		root = args.getState();
+		updateView();
+		hideAttributeConfig();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.jsonexplorer.event.IUndoRedoControllerListener#onRedo(com.
+	 * jsonexplorer.event.UndoRedoControllerEventArgs)
+	 */
+	@Override
+	public void onRedo(UndoRedoControllerEventArgs<Object> args) {
+		root = args.getState();
+		updateView();
+		hideAttributeConfig();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.jsonexplorer.event.IUndoRedoControllerListener#onClear(com.
+	 * jsonexplorer.event.UndoRedoControllerEventArgs)
+	 */
+	@Override
+	public void onClear(UndoRedoControllerEventArgs<Object> args) {
+		root = args.getState();
+		updateView();
+		hideAttributeConfig();
+	}
 }

@@ -2,6 +2,7 @@ package com.jsonexplorer.ui;
 
 import javax.swing.JToggleButton;
 
+import com.jsonexplorer.core.EAttributeTypes;
 import com.jsonexplorer.core.JSONInheritance;
 
 import java.awt.GridBagConstraints;
@@ -36,6 +37,9 @@ public class BooleanAttributePanel extends AttributePanel {
 	 * Constructor
 	 * 
 	 * Create the panel.
+	 * 
+	 * @param json_inheritance
+	 *            JSON inheritance
 	 */
 	public BooleanAttributePanel(JSONInheritance json_inheritance) {
 		super(json_inheritance);
@@ -59,6 +63,9 @@ public class BooleanAttributePanel extends AttributePanel {
 		gbc_value_toggleButton.gridx = 0;
 		gbc_value_toggleButton.gridy = 1;
 		add(value_toggleButton, gbc_value_toggleButton);
+
+		if (json_inheritance.getValue() instanceof Boolean)
+			setJSONValue(((Boolean) json_inheritance.getValue()).booleanValue());
 	}
 
 	/**
@@ -84,5 +91,15 @@ public class BooleanAttributePanel extends AttributePanel {
 	@Override
 	public Object getAttributeValue() {
 		return state;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.jsonexplorer.ui.AttributePanel#getAttributeType()
+	 */
+	@Override
+	public EAttributeTypes getAttributeType() {
+		return EAttributeTypes.BOOLEAN;
 	}
 }

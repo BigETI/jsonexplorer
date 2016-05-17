@@ -84,8 +84,6 @@ public class CodeTextArea extends JPanel {
 
 		text_scrollPane = new JScrollPane();
 		text_scrollPane.setPreferredSize(new Dimension(2, 200));
-		text_scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-		text_scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		text_scrollPane.getViewport().addChangeListener(new ChangeListener() {
 
 			/*

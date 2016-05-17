@@ -23,6 +23,7 @@ public abstract class Notifier<LT, T extends IEventArgs> {
 	 * Add new listener
 	 * 
 	 * @param listener
+	 *            New listener
 	 */
 	public void addListener(LT listener) {
 		if (!listeners.contains(listener))

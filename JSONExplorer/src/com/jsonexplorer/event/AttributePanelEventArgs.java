@@ -26,7 +26,7 @@ public class AttributePanelEventArgs implements IEventArgs {
 	 * 
 	 * @param attribute_panel
 	 *            Attribute panel
-	 * @param json_ineritance
+	 * @param json_inheritance
 	 *            JSON inheritance
 	 */
 	public AttributePanelEventArgs(AttributePanel attribute_panel, JSONInheritance json_inheritance) {

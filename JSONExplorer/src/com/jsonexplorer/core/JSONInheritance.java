@@ -1,5 +1,8 @@
 package com.jsonexplorer.core;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 /**
  * Class to store inheritance of JSON attributes
  * 
@@ -21,7 +24,7 @@ public class JSONInheritance {
 	/**
 	 * Parent
 	 */
-	private Object parent;
+	private JSONInheritance parent;
 
 	/**
 	 * Name
@@ -40,7 +43,7 @@ public class JSONInheritance {
 	 * @param name
 	 *            Name
 	 */
-	public JSONInheritance(Object value, Object key, Object parent, String name) {
+	public JSONInheritance(Object value, Object key, JSONInheritance parent, String name) {
 		this.value = value;
 		this.key = key;
 		this.parent = parent;
@@ -70,7 +73,7 @@ public class JSONInheritance {
 	 * 
 	 * @return Parent
 	 */
-	public Object getParent() {
+	public JSONInheritance getParent() {
 		return parent;
 	}
 
@@ -81,6 +84,28 @@ public class JSONInheritance {
 	 */
 	public String getName() {
 		return name;
+	}
+
+	/**
+	 * Get JSON path
+	 * 
+	 * @return JSON path
+	 */
+	public String getPath() {
+		StringBuilder ret = new StringBuilder();
+		if (parent != null) {
+			ret.append(parent.getPath());
+			if (parent.value instanceof JSONObject) {
+				ret.append(".");
+				ret.append(key);
+			} else if (parent.value instanceof JSONArray) {
+				ret.append("[");
+				ret.append(key);
+				ret.append("]");
+			}
+		} else
+			ret.append("<Root>");
+		return ret.toString();
 	}
 
 	/*

@@ -107,6 +107,9 @@ public class MainForm implements ActionListener {
 	 * Main entry
 	 * 
 	 * Launch the application.
+	 * 
+	 * @param args
+	 *            Command line arguments
 	 */
 	public static void main(String[] args) {
 		if (args.length > 0)
@@ -181,6 +184,7 @@ public class MainForm implements ActionListener {
 			 * ActionEvent)
 			 */
 			public void actionPerformed(ActionEvent arg0) {
+				hideAttributeConfig();
 				if (!parseJSON(json_raw_panel_editor.getTextArea().getText()))
 					JOptionPane.showMessageDialog(frmJsonExplorer, "This is not valid JSON.", "Parse JSON error",
 							JOptionPane.ERROR_MESSAGE);
@@ -205,6 +209,7 @@ public class MainForm implements ActionListener {
 			 * ActionEvent)
 			 */
 			public void actionPerformed(ActionEvent e) {
+				hideAttributeConfig();
 				updateView();
 			}
 		});
@@ -457,7 +462,7 @@ public class MainForm implements ActionListener {
 			jo = (JSONObject) o;
 			for (String i : jo.keySet()) {
 				to = jo.get(i);
-				t = new DefaultMutableTreeNode(new JSONInheritance(to, i, o, "[" + i + "]"));
+				t = new DefaultMutableTreeNode(new JSONInheritance(to, i, ji, "[" + i + "]"));
 				dmtn.add(t);
 				appendJSONNodeView(t);
 			}
@@ -465,7 +470,7 @@ public class MainForm implements ActionListener {
 			ja = (JSONArray) o;
 			for (int i = 0, count = ja.length(); i < count; i++) {
 				to = ja.get(i);
-				t = new DefaultMutableTreeNode(new JSONInheritance(to, i, o, "[" + i + "]"));
+				t = new DefaultMutableTreeNode(new JSONInheritance(to, i, ji, "[" + i + "]"));
 				dmtn.add(t);
 				appendJSONNodeView(t);
 			}
@@ -492,6 +497,18 @@ public class MainForm implements ActionListener {
 	}
 
 	/**
+	 * Hide attribute configuration
+	 */
+	private void hideAttributeConfig() {
+		attribute_splitPane.setLeftComponent(json_attribute_config_label);
+		if (attribute_config_panel != null) {
+			attribute_config_panel.getNotifier().clear();
+			attribute_config_panel.removeAll();
+			attribute_config_panel = null;
+		}
+	}
+
+	/**
 	 * Show attribute configuration by JSON inheritance
 	 * 
 	 * @param o
@@ -499,12 +516,7 @@ public class MainForm implements ActionListener {
 	 */
 	private void showAttributeConfig(JSONInheritance ji) {
 		Object t;
-		attribute_splitPane.setLeftComponent(json_attribute_config_label);
-		if (attribute_config_panel != null) {
-			attribute_config_panel.getNotifier().clear();
-			attribute_config_panel.removeAll();
-			attribute_config_panel = null;
-		}
+		hideAttributeConfig();
 		t = ji.getValue();
 		if (t == JSONObject.NULL)
 			attribute_config_panel = new AttributePanel(ji);
@@ -541,6 +553,7 @@ public class MainForm implements ActionListener {
 				@Override
 				public void onChangeType(AttributePanelEventArgs args) {
 					updateView();
+					showAttributeConfig(attribute_config_panel.getJSONInheritance());
 				}
 			});
 			attribute_splitPane.setLeftComponent(attribute_config_panel);

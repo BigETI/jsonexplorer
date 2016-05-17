@@ -1,9 +1,8 @@
 package com.jsonexplorer.ui;
 
 import java.math.BigInteger;
-import java.text.DecimalFormat;
-import java.text.ParseException;
 
+import com.jsonexplorer.core.EAttributeTypes;
 import com.jsonexplorer.core.JSONInheritance;
 
 /**
@@ -20,10 +19,15 @@ public class IntegerAttributePanel extends NumberAttributePanel<BigInteger> {
 	private static final long serialVersionUID = -482300834939588254L;
 
 	/**
+	 * Constructor
+	 * 
 	 * Create the panel.
+	 * 
+	 * @param json_inheritance
+	 *            JSON inheritance
 	 */
 	public IntegerAttributePanel(JSONInheritance json_inheritance) {
-		super(json_inheritance, new DecimalFormat("#"));
+		super(json_inheritance);
 	}
 
 	/*
@@ -35,12 +39,24 @@ public class IntegerAttributePanel extends NumberAttributePanel<BigInteger> {
 	public Object getAttributeValue() {
 		BigInteger ret;
 		try {
-			getFormattedTextField().commitEdit();
-			ret = new BigInteger(getFormattedTextField().getValue().toString());
-		} catch (ParseException e) {
+			// getFormattedTextField().commitEdit();
+			// ret = new
+			// BigInteger(getFormattedTextField().getValue().toString());
+			ret = new BigInteger(getTextField().getText());
+		} catch (Exception e) {
+			getTextField().setText(getJSONInheritance().getValue().toString());
 			ret = new BigInteger(getJSONInheritance().getValue().toString());
 		}
 		return ret;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.jsonexplorer.ui.AttributePanel#getAttributeType()
+	 */
+	@Override
+	public EAttributeTypes getAttributeType() {
+		return EAttributeTypes.INTEGER;
+	}
 }

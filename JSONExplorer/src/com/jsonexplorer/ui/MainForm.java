@@ -194,7 +194,9 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 			 */
 			public void actionPerformed(ActionEvent arg0) {
 				hideAttributeConfig();
-				if (!parseJSON(json_raw_panel_editor.getTextArea().getText()))
+				if (parseJSON(json_raw_panel_editor.getTextArea().getText()))
+					undo_redo_controller.commit(root, "Parse JSON");
+				else
 					JOptionPane.showMessageDialog(frmJsonExplorer, "This is not valid JSON.", "Parse JSON error",
 							JOptionPane.ERROR_MESSAGE);
 				updateView();
@@ -374,7 +376,7 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 		mntmRedo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
 		mnEdit.add(mntmRedo);
 
-		undo_redo_controller = new UndoRedoController<>(mntmUndo, mntmRedo);
+		undo_redo_controller = new UndoRedoController<>(mntmUndo, mntmRedo, copyJSONObject(root), "Init");
 		undo_redo_controller.addListener(this);
 
 		if (load_file_name == null)
@@ -427,7 +429,9 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 		} finally {
 			//
 		}
-		if (!parseJSON(sb.toString()))
+		if (parseJSON(sb.toString()))
+			undo_redo_controller.commit(copyJSONObject(root), "Load file");
+		else
 			JOptionPane.showMessageDialog(frmJsonExplorer, "This is not valid JSON.", "Parse JSON error",
 					JOptionPane.ERROR_MESSAGE);
 		updateView();
@@ -554,6 +558,22 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 	}
 
 	/**
+	 * Copy JSON object
+	 * 
+	 * @return New root reference
+	 */
+	private Object copyJSONObject(Object o) {
+		Object ret = null;
+		if (o instanceof JSONObject) {
+			ret = new JSONObject(((JSONObject) o).toString(0));
+		} else if (o instanceof JSONArray) {
+			ret = new JSONArray(((JSONArray) o).toString(0));
+		} else
+			ret = new JSONObject();
+		return ret;
+	}
+
+	/**
 	 * Show attribute configuration by JSON inheritance
 	 * 
 	 * @param o
@@ -579,13 +599,39 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 				/*
 				 * (non-Javadoc)
 				 * 
+				 * @see com.jsonexplorer.event.IAttributePanelListener#
+				 * onBeforeSaveChanges(com.jsonexplorer.event.
+				 * AttributePanelEventArgs)
+				 */
+				@Override
+				public void onBeforeSaveChanges(AttributePanelEventArgs args) {
+					// root = copyJSONObject(root);
+				}
+
+				/*
+				 * (non-Javadoc)
+				 * 
 				 * @see
 				 * com.jsonexplorer.event.IAttributePanelListener#onSaveChanges(
 				 * com.jsonexplorer.event.AttributePanelEventArgs)
 				 */
 				@Override
 				public void onSaveChanges(AttributePanelEventArgs args) {
+					undo_redo_controller.commit(copyJSONObject(root), "Change value");
 					updateView();
+					showAttributeConfig(attribute_config_panel.getJSONInheritance());
+				}
+
+				/*
+				 * (non-Javadoc)
+				 * 
+				 * @see com.jsonexplorer.event.IAttributePanelListener#
+				 * onBeforeChangeType(com.jsonexplorer.event.
+				 * AttributePanelEventArgs)
+				 */
+				@Override
+				public void onBeforeChangeType(AttributePanelEventArgs args) {
+					// root = copyJSONObject(root);
 				}
 
 				/*
@@ -677,7 +723,7 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 	 */
 	@Override
 	public void onRedo(UndoRedoControllerEventArgs<Object> args) {
-		root = args.getState();
+		root = copyJSONObject(args.getState());
 		updateView();
 		hideAttributeConfig();
 	}
@@ -690,7 +736,7 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 	 */
 	@Override
 	public void onClear(UndoRedoControllerEventArgs<Object> args) {
-		root = args.getState();
+		root = copyJSONObject(args.getState());
 		updateView();
 		hideAttributeConfig();
 	}

@@ -5,6 +5,8 @@ import java.awt.event.ActionListener;
 import java.util.LinkedList;
 
 import javax.swing.JMenuItem;
+
+import com.jsonexplorer.event.UndoRedoControllerEventArgs;
 import com.jsonexplorer.event.UndoRedoControllerNotifier;
 
 import javafx.util.Pair;
@@ -51,8 +53,12 @@ public class UndoRedoController<T> extends UndoRedoControllerNotifier<T> {
 	 *            Undo menu item
 	 * @param redo_menu_item
 	 *            Redo menu item
+	 * @param init_state
+	 *            Initial state
+	 * @param action
+	 *            Action
 	 */
-	public UndoRedoController(JMenuItem undo_menu_item, JMenuItem redo_menu_item) {
+	public UndoRedoController(JMenuItem undo_menu_item, JMenuItem redo_menu_item, T init_state, String action) {
 		this.undo_menu_item = undo_menu_item;
 		this.redo_menu_item = redo_menu_item;
 		if (undo_menu_item != null)
@@ -97,7 +103,7 @@ public class UndoRedoController<T> extends UndoRedoControllerNotifier<T> {
 			if (undo_menu_item != null) {
 				enabled = (undo_cache.size() > 0);
 				if (enabled)
-					undo_menu_item.setText("Undo (" + undo_cache.getLast().getValue() + ")");
+					undo_menu_item.setText("Undo (" + current_state.getValue() + ")");
 				else
 					undo_menu_item.setText("Undo");
 				undo_menu_item.setEnabled(enabled);
@@ -106,9 +112,9 @@ public class UndoRedoController<T> extends UndoRedoControllerNotifier<T> {
 			if (redo_menu_item != null) {
 				enabled = (redo_cache.size() > 0);
 				if (enabled)
-					redo_menu_item.setText("Undo (" + redo_cache.getLast().getValue() + ")");
+					redo_menu_item.setText("Redo (" + redo_cache.getLast().getValue() + ")");
 				else
-					redo_menu_item.setText("Undo");
+					redo_menu_item.setText("Redo");
 				redo_menu_item.setEnabled(enabled);
 			}
 		}
@@ -128,6 +134,7 @@ public class UndoRedoController<T> extends UndoRedoControllerNotifier<T> {
 		current_state = new Pair<>(state, action);
 		redo_cache.clear();
 		updateMenuItems();
+		setOnCommit(new UndoRedoControllerEventArgs<T>(current_state.getKey()));
 	}
 
 	/**
@@ -142,6 +149,7 @@ public class UndoRedoController<T> extends UndoRedoControllerNotifier<T> {
 			current_state = undo_cache.getLast();
 			undo_cache.removeLast();
 			updateMenuItems();
+			setOnUndo(new UndoRedoControllerEventArgs<T>(current_state.getKey()));
 		}
 		return current_state.getKey();
 	}
@@ -158,6 +166,7 @@ public class UndoRedoController<T> extends UndoRedoControllerNotifier<T> {
 			current_state = redo_cache.getLast();
 			redo_cache.removeLast();
 			updateMenuItems();
+			setOnRedo(new UndoRedoControllerEventArgs<T>(current_state.getKey()));
 		}
 		return current_state.getKey();
 	}
@@ -184,5 +193,6 @@ public class UndoRedoController<T> extends UndoRedoControllerNotifier<T> {
 		undo_cache.clear();
 		redo_cache.clear();
 		updateMenuItems();
+		setOnClear(new UndoRedoControllerEventArgs<T>(init_state));
 	}
 }

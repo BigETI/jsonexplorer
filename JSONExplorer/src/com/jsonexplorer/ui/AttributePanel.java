@@ -163,6 +163,7 @@ public class AttributePanel extends JPanel {
 			if (json_inheritance.getKey() instanceof String) {
 				jok = (String) json_inheritance.getKey();
 				if (jo.opt(jok) != null) {
+					notifier.setOnBeforeSaveChanges(new AttributePanelEventArgs(this, json_inheritance));
 					jo.put(jok, value);
 					json_inheritance = new JSONInheritance(value, jok, json_inheritance.getParent(),
 							json_inheritance.getName());
@@ -200,6 +201,7 @@ public class AttributePanel extends JPanel {
 				if (json_inheritance.getKey() instanceof String) {
 					jok = (String) json_inheritance.getKey();
 					if (jo.opt(jok) != null) {
+						notifier.setOnBeforeChangeType(new AttributePanelEventArgs(this, json_inheritance));
 						jo.put(jok, at.getDefaultValue());
 						json_inheritance = new JSONInheritance(at.getDefaultValue(), jok, json_inheritance.getParent(),
 								json_inheritance.getName());

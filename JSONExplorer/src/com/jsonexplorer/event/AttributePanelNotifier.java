@@ -9,7 +9,19 @@ package com.jsonexplorer.event;
 public class AttributePanelNotifier extends Notifier<IAttributePanelListener, AttributePanelEventArgs> {
 
 	/**
-	 * Trigger "onSaveChanged" event
+	 * Trigger "onBeforeSaveChanges" event
+	 * 
+	 * @param args
+	 *            Event arguments
+	 */
+	public void setOnBeforeSaveChanges(AttributePanelEventArgs args) {
+		for (IAttributePanelListener i : getListeners()) {
+			i.onBeforeSaveChanges(args);
+		}
+	}
+
+	/**
+	 * Trigger "onSaveChanges" event
 	 * 
 	 * @param args
 	 *            Event arguments
@@ -17,6 +29,18 @@ public class AttributePanelNotifier extends Notifier<IAttributePanelListener, At
 	public void setOnSaveChanges(AttributePanelEventArgs args) {
 		for (IAttributePanelListener i : getListeners()) {
 			i.onSaveChanges(args);
+		}
+	}
+
+	/**
+	 * Trigger "onBeforeChangeType" event
+	 * 
+	 * @param args
+	 *            Event arguments
+	 */
+	public void setOnBeforeChangeType(AttributePanelEventArgs args) {
+		for (IAttributePanelListener i : getListeners()) {
+			i.onBeforeChangeType(args);
 		}
 	}
 

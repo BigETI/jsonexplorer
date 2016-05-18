@@ -25,7 +25,7 @@ public abstract class NumberAttributePanel<T extends Number> extends AttributePa
 	/**
 	 * Text field
 	 */
-	private JTextField value_textField;
+	private JTextField value_text_field;
 
 	/**
 	 * Constructor
@@ -40,16 +40,16 @@ public abstract class NumberAttributePanel<T extends Number> extends AttributePa
 		GridBagLayout gridBagLayout = (GridBagLayout) getLayout();
 		gridBagLayout.columnWeights = new double[] { 1.0 };
 
-		value_textField = new JTextField();
-		GridBagConstraints gbc_value_TextField = new GridBagConstraints();
-		gbc_value_TextField.insets = new Insets(0, 0, 5, 5);
-		gbc_value_TextField.fill = GridBagConstraints.HORIZONTAL;
-		gbc_value_TextField.gridx = 0;
-		gbc_value_TextField.gridy = 1;
-		add(value_textField, gbc_value_TextField);
-		value_textField.setColumns(10);
+		value_text_field = new JTextField();
+		GridBagConstraints gbc_value_text_field = new GridBagConstraints();
+		gbc_value_text_field.insets = new Insets(0, 0, 5, 5);
+		gbc_value_text_field.fill = GridBagConstraints.HORIZONTAL;
+		gbc_value_text_field.gridx = 0;
+		gbc_value_text_field.gridy = 1;
+		add(value_text_field, gbc_value_text_field);
+		value_text_field.setColumns(10);
 
-		value_textField.setText(json_inheritance.getValue().toString());
+		value_text_field.setText(json_inheritance.getValue().toString());
 	}
 
 	/**
@@ -58,7 +58,7 @@ public abstract class NumberAttributePanel<T extends Number> extends AttributePa
 	 * @return Text field
 	 */
 	protected JTextField getTextField() {
-		return value_textField;
+		return value_text_field;
 	}
 
 	/*

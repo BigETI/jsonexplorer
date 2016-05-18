@@ -26,7 +26,7 @@ public class BooleanAttributePanel extends AttributePanel {
 	/**
 	 * Toggle button
 	 */
-	private JToggleButton value_toggleButton;
+	private JToggleButton value_toggle_button;
 
 	/**
 	 * Boolean state
@@ -44,8 +44,8 @@ public class BooleanAttributePanel extends AttributePanel {
 	public BooleanAttributePanel(JSONInheritance json_inheritance) {
 		super(json_inheritance);
 
-		value_toggleButton = new JToggleButton("Undefined");
-		value_toggleButton.addItemListener(new ItemListener() {
+		value_toggle_button = new JToggleButton("Undefined");
+		value_toggle_button.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent arg0) {
 				switch (arg0.getStateChange()) {
 				case ItemEvent.SELECTED:
@@ -57,12 +57,12 @@ public class BooleanAttributePanel extends AttributePanel {
 				}
 			}
 		});
-		GridBagConstraints gbc_value_toggleButton = new GridBagConstraints();
-		gbc_value_toggleButton.fill = GridBagConstraints.HORIZONTAL;
-		gbc_value_toggleButton.insets = new Insets(0, 0, 5, 0);
-		gbc_value_toggleButton.gridx = 0;
-		gbc_value_toggleButton.gridy = 1;
-		add(value_toggleButton, gbc_value_toggleButton);
+		GridBagConstraints gbc_value_toggle_button = new GridBagConstraints();
+		gbc_value_toggle_button.fill = GridBagConstraints.HORIZONTAL;
+		gbc_value_toggle_button.insets = new Insets(0, 0, 5, 0);
+		gbc_value_toggle_button.gridx = 0;
+		gbc_value_toggle_button.gridy = 1;
+		add(value_toggle_button, gbc_value_toggle_button);
 
 		if (json_inheritance.getValue() instanceof Boolean)
 			setJSONValue(((Boolean) json_inheritance.getValue()).booleanValue());
@@ -77,10 +77,10 @@ public class BooleanAttributePanel extends AttributePanel {
 	private void setJSONValue(boolean b) {
 		state = b;
 		if (b)
-			value_toggleButton.setText("True - click to set false");
+			value_toggle_button.setText("True - click to set false");
 		else
-			value_toggleButton.setText("False - click to set true");
-		value_toggleButton.setSelected(b);
+			value_toggle_button.setText("False - click to set true");
+		value_toggle_button.setSelected(b);
 	}
 
 	/*

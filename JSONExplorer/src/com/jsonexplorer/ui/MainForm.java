@@ -52,6 +52,12 @@ import java.awt.GridBagLayout;
 import javax.swing.JButton;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+
 import javax.swing.JPopupMenu;
 import java.awt.Component;
 import java.awt.event.MouseAdapter;
@@ -68,12 +74,12 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 	/**
 	 * Application frame
 	 */
-	private JFrame frmJsonExplorer;
+	private JFrame json_explorer_frame;
 
 	/**
 	 * Attribute split pane
 	 */
-	private JSplitPane attribute_splitPane;
+	private JSplitPane attribute_split_pane;
 
 	/**
 	 * JSON tree view
@@ -88,7 +94,7 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 	/**
 	 * Raw JSON editor
 	 */
-	private CodeTextArea json_raw_panel_editor;
+	private CodeTextArea json_raw_code_text_editor;
 
 	/**
 	 * Attribute configuration panel
@@ -98,7 +104,7 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 	/**
 	 * Save selected node menu item
 	 */
-	private JMenuItem mntmSaveSelectedNode;
+	private JMenuItem file_save_selected_node_menu_item;
 
 	/**
 	 * Root JSON object/array
@@ -127,7 +133,7 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 			public void run() {
 				try {
 					MainForm window = new MainForm();
-					window.frmJsonExplorer.setVisible(true);
+					window.json_explorer_frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -148,29 +154,29 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
-		frmJsonExplorer = new JFrame();
-		frmJsonExplorer.setTitle("JSON Explorer");
-		frmJsonExplorer.setBounds(100, 100, 724, 508);
-		frmJsonExplorer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		json_explorer_frame = new JFrame();
+		json_explorer_frame.setTitle("JSON Explorer");
+		json_explorer_frame.setBounds(100, 100, 724, 508);
+		json_explorer_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		JSplitPane main_splitPane = new JSplitPane();
-		frmJsonExplorer.getContentPane().add(main_splitPane, BorderLayout.CENTER);
+		JSplitPane main_split_pane = new JSplitPane();
+		json_explorer_frame.getContentPane().add(main_split_pane, BorderLayout.CENTER);
 
 		JPanel attribute_panel = new JPanel();
-		main_splitPane.setRightComponent(attribute_panel);
+		main_split_pane.setRightComponent(attribute_panel);
 		attribute_panel.setLayout(new BorderLayout(0, 0));
 
-		attribute_splitPane = new JSplitPane();
-		attribute_splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
-		attribute_panel.add(attribute_splitPane, BorderLayout.CENTER);
+		attribute_split_pane = new JSplitPane();
+		attribute_split_pane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+		attribute_panel.add(attribute_split_pane, BorderLayout.CENTER);
 
 		json_attribute_config_label = new JLabel("Select an attribute to edit");
 		json_attribute_config_label.setFont(new Font("Tahoma", Font.BOLD, 20));
 		json_attribute_config_label.setHorizontalAlignment(SwingConstants.CENTER);
-		attribute_splitPane.setLeftComponent(json_attribute_config_label);
+		attribute_split_pane.setLeftComponent(json_attribute_config_label);
 
 		JPanel json_raw_panel = new JPanel();
-		attribute_splitPane.setRightComponent(json_raw_panel);
+		attribute_split_pane.setRightComponent(json_raw_panel);
 		json_raw_panel.setLayout(new BorderLayout(0, 0));
 
 		JPanel json_raw_buttons_panel = new JPanel();
@@ -194,10 +200,10 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 			 */
 			public void actionPerformed(ActionEvent arg0) {
 				hideAttributeConfig();
-				if (parseJSON(json_raw_panel_editor.getTextArea().getText()))
+				if (parseJSON(json_raw_code_text_editor.getTextArea().getText()))
 					undo_redo_controller.commit(root, "Parse JSON");
 				else
-					JOptionPane.showMessageDialog(frmJsonExplorer, "This is not valid JSON.", "Parse JSON error",
+					JOptionPane.showMessageDialog(json_explorer_frame, "This is not valid JSON.", "Parse JSON error",
 							JOptionPane.ERROR_MESSAGE);
 				updateView();
 			}
@@ -230,12 +236,12 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 		gbc_revert_json_button.gridy = 1;
 		json_raw_buttons_panel.add(revert_json_button, gbc_revert_json_button);
 
-		json_raw_panel_editor = new CodeTextArea();
-		json_raw_panel.add(json_raw_panel_editor, BorderLayout.CENTER);
+		json_raw_code_text_editor = new CodeTextArea();
+		json_raw_panel.add(json_raw_code_text_editor, BorderLayout.CENTER);
 
-		JScrollPane json_scrollPane = new JScrollPane();
-		json_scrollPane.setPreferredSize(new Dimension(200, 2));
-		main_splitPane.setLeftComponent(json_scrollPane);
+		JScrollPane json_scroll_pane = new JScrollPane();
+		json_scroll_pane.setPreferredSize(new Dimension(200, 2));
+		main_split_pane.setLeftComponent(json_scroll_pane);
 
 		json_tree = new JTree();
 		json_tree.addTreeSelectionListener(new TreeSelectionListener() {
@@ -250,24 +256,24 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 			public void valueChanged(TreeSelectionEvent arg0) {
 				DefaultMutableTreeNode sn = (DefaultMutableTreeNode) json_tree.getLastSelectedPathComponent();
 				JSONInheritance ji;
-				mntmSaveSelectedNode.setEnabled(false);
+				file_save_selected_node_menu_item.setEnabled(false);
 				if (sn != null) {
 					if (sn.getUserObject() instanceof JSONInheritance) {
 						ji = (JSONInheritance) sn.getUserObject();
 						showAttributeConfig(ji);
 						if ((ji.getValue() instanceof JSONObject) || (ji.getValue() instanceof JSONArray))
-							mntmSaveSelectedNode.setEnabled(true);
+							file_save_selected_node_menu_item.setEnabled(true);
 					}
 				}
 			}
 		});
-		json_scrollPane.setViewportView(json_tree);
+		json_scroll_pane.setViewportView(json_tree);
 
-		JPopupMenu popupMenu = new JPopupMenu();
-		addPopup(json_tree, popupMenu);
+		JPopupMenu json_tree_popup_menu = new JPopupMenu();
+		addPopup(json_tree, json_tree_popup_menu);
 
-		JMenuItem mntmRemoveNode = new JMenuItem("Remove node");
-		mntmRemoveNode.addActionListener(new ActionListener() {
+		JMenuItem popup_remove_node_menu_item = new JMenuItem("Remove node");
+		popup_remove_node_menu_item.addActionListener(new ActionListener() {
 
 			/*
 			 * (non-Javadoc)
@@ -277,24 +283,114 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 			 * ActionEvent)
 			 */
 			public void actionPerformed(ActionEvent e) {
-				//
+				removeSelectedNode();
 			}
 		});
-		mntmRemoveNode.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
-		popupMenu.add(mntmRemoveNode);
 
-		JMenuBar menuBar = new JMenuBar();
-		frmJsonExplorer.setJMenuBar(menuBar);
+		JMenuItem popup_copy_menu_item = new JMenuItem("Copy");
+		popup_copy_menu_item.addActionListener(new ActionListener() {
 
-		JMenu mnFile = new JMenu("File");
-		menuBar.add(mnFile);
+			/*
+			 * (non-Javadoc)
+			 * 
+			 * @see
+			 * java.awt.event.ActionListener#actionPerformed(java.awt.event.
+			 * ActionEvent)
+			 */
+			public void actionPerformed(ActionEvent e) {
+				copySelectedNode();
+			}
+		});
+		popup_copy_menu_item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
+		json_tree_popup_menu.add(popup_copy_menu_item);
 
-		JMenuItem mntmExit = new JMenuItem("Exit");
-		mntmExit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.ALT_MASK));
-		mntmExit.addActionListener(this);
+		JMenuItem popup_paste_menu_item = new JMenuItem("Paste");
+		popup_paste_menu_item.setEnabled(false);
+		popup_paste_menu_item.addActionListener(new ActionListener() {
 
-		JMenuItem mntmOpen = new JMenuItem("Open");
-		mntmOpen.addActionListener(new ActionListener() {
+			/*
+			 * (non-Javadoc)
+			 * 
+			 * @see
+			 * java.awt.event.ActionListener#actionPerformed(java.awt.event.
+			 * ActionEvent)
+			 */
+			public void actionPerformed(ActionEvent e) {
+				pasteSelectedNode();
+			}
+		});
+		popup_paste_menu_item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
+		json_tree_popup_menu.add(popup_paste_menu_item);
+
+		JSeparator popup_separator_1 = new JSeparator();
+		json_tree_popup_menu.add(popup_separator_1);
+		popup_remove_node_menu_item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
+		json_tree_popup_menu.add(popup_remove_node_menu_item);
+
+		JMenu popup_add_node_menu = new JMenu("Add node...");
+		popup_add_node_menu.setEnabled(false);
+		json_tree_popup_menu.add(popup_add_node_menu);
+
+		JMenuItem popup_add_json_object_menu_item = new JMenuItem("JSON object");
+		popup_add_json_object_menu_item.addActionListener(new ActionListener() {
+
+			/*
+			 * (non-Javadoc)
+			 * 
+			 * @see
+			 * java.awt.event.ActionListener#actionPerformed(java.awt.event.
+			 * ActionEvent)
+			 */
+			public void actionPerformed(ActionEvent e) {
+				addJSONObjectToSelection();
+			}
+		});
+		popup_add_node_menu.add(popup_add_json_object_menu_item);
+
+		JMenuItem popup_add_json_array_menu_item = new JMenuItem("JSON array");
+		popup_add_json_array_menu_item.addActionListener(new ActionListener() {
+
+			/*
+			 * (non-Javadoc)
+			 * 
+			 * @see
+			 * java.awt.event.ActionListener#actionPerformed(java.awt.event.
+			 * ActionEvent)
+			 */
+			public void actionPerformed(ActionEvent e) {
+				addJSONArrayToSelection();
+			}
+		});
+		popup_add_node_menu.add(popup_add_json_array_menu_item);
+
+		JMenuItem popup_add_json_attribute_menu_item = new JMenuItem("JSON attribute");
+		popup_add_json_attribute_menu_item.addActionListener(new ActionListener() {
+
+			/*
+			 * (non-Javadoc)
+			 * 
+			 * @see
+			 * java.awt.event.ActionListener#actionPerformed(java.awt.event.
+			 * ActionEvent)
+			 */
+			public void actionPerformed(ActionEvent e) {
+				addJSONAttributeToSelection();
+			}
+		});
+		popup_add_node_menu.add(popup_add_json_attribute_menu_item);
+
+		JMenuBar menu_bar = new JMenuBar();
+		json_explorer_frame.setJMenuBar(menu_bar);
+
+		JMenu file_menu = new JMenu("File");
+		menu_bar.add(file_menu);
+
+		JMenuItem file_exit_menu_item = new JMenuItem("Exit");
+		file_exit_menu_item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.ALT_MASK));
+		file_exit_menu_item.addActionListener(this);
+
+		JMenuItem file_open_menu_item = new JMenuItem("Open");
+		file_open_menu_item.addActionListener(new ActionListener() {
 
 			/*
 			 * (non-Javadoc)
@@ -307,14 +403,14 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 				showLoadFileDialog();
 			}
 		});
-		mntmOpen.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_MASK));
-		mnFile.add(mntmOpen);
+		file_open_menu_item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_MASK));
+		file_menu.add(file_open_menu_item);
 
-		JSeparator mntmFileSeparator_1 = new JSeparator();
-		mnFile.add(mntmFileSeparator_1);
+		JSeparator file_separator_1 = new JSeparator();
+		file_menu.add(file_separator_1);
 
-		JMenuItem mntmSaveTree = new JMenuItem("Save Tree");
-		mntmSaveTree.addActionListener(new ActionListener() {
+		JMenuItem file_save_tree_menu_item = new JMenuItem("Save Tree");
+		file_save_tree_menu_item.addActionListener(new ActionListener() {
 
 			/*
 			 * (non-Javadoc)
@@ -327,12 +423,12 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 				showSaveFileDialog(root);
 			}
 		});
-		mntmSaveTree.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
-		mnFile.add(mntmSaveTree);
+		file_save_tree_menu_item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
+		file_menu.add(file_save_tree_menu_item);
 
-		mntmSaveSelectedNode = new JMenuItem("Save selected node");
-		mntmSaveSelectedNode.setEnabled(false);
-		mntmSaveSelectedNode.addActionListener(new ActionListener() {
+		file_save_selected_node_menu_item = new JMenuItem("Save selected node");
+		file_save_selected_node_menu_item.setEnabled(false);
+		file_save_selected_node_menu_item.addActionListener(new ActionListener() {
 
 			/*
 			 * (non-Javadoc)
@@ -354,29 +450,91 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 
 			}
 		});
-		mntmSaveSelectedNode
+		file_save_selected_node_menu_item
 				.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
-		mnFile.add(mntmSaveSelectedNode);
+		file_menu.add(file_save_selected_node_menu_item);
 
-		JSeparator mntmFileSeparator_2 = new JSeparator();
-		mnFile.add(mntmFileSeparator_2);
+		JSeparator file_separator_2 = new JSeparator();
+		file_menu.add(file_separator_2);
 
-		mnFile.add(mntmExit);
+		file_menu.add(file_exit_menu_item);
 
-		JMenu mnEdit = new JMenu("Edit");
-		menuBar.add(mnEdit);
+		JMenu edit_menu = new JMenu("Edit");
+		menu_bar.add(edit_menu);
 
-		JMenuItem mntmUndo = new JMenuItem("Undo");
-		mntmUndo.setEnabled(false);
-		mntmUndo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_MASK));
-		mnEdit.add(mntmUndo);
+		JMenuItem edit_undo_menu_item = new JMenuItem("Undo");
+		edit_undo_menu_item.setEnabled(false);
+		edit_undo_menu_item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_MASK));
+		edit_menu.add(edit_undo_menu_item);
 
-		JMenuItem mntmRedo = new JMenuItem("Redo");
-		mntmRedo.setEnabled(false);
-		mntmRedo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
-		mnEdit.add(mntmRedo);
+		JMenuItem edit_redo_menu_item = new JMenuItem("Redo");
+		edit_redo_menu_item.setEnabled(false);
+		edit_redo_menu_item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
+		edit_menu.add(edit_redo_menu_item);
 
-		undo_redo_controller = new UndoRedoController<>(mntmUndo, mntmRedo, copyJSONObject(root), "Init");
+		undo_redo_controller = new UndoRedoController<>(edit_undo_menu_item, edit_redo_menu_item, copyJSONObject(root), "Init");
+
+		JSeparator edit_separator_1 = new JSeparator();
+		edit_menu.add(edit_separator_1);
+
+		JMenuItem edit_remove_node_menu_item = new JMenuItem("Remove node");
+		edit_remove_node_menu_item.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				removeSelectedNode();
+			}
+		});
+
+		JMenuItem edit_copy_menu_item = new JMenuItem("Copy");
+		edit_copy_menu_item.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				copySelectedNode();
+			}
+		});
+		edit_copy_menu_item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
+		edit_menu.add(edit_copy_menu_item);
+
+		JMenuItem edit_paste_menu_item = new JMenuItem("Paste");
+		edit_paste_menu_item.setEnabled(false);
+		edit_paste_menu_item.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				pasteSelectedNode();
+			}
+		});
+		edit_paste_menu_item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
+		edit_menu.add(edit_paste_menu_item);
+
+		JSeparator edit_separator_2 = new JSeparator();
+		edit_menu.add(edit_separator_2);
+		edit_remove_node_menu_item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
+		edit_menu.add(edit_remove_node_menu_item);
+
+		JMenu edit_add_node_menu = new JMenu("Add node...");
+		edit_add_node_menu.setEnabled(false);
+		edit_menu.add(edit_add_node_menu);
+
+		JMenuItem edit_add_json_object_menu_item = new JMenuItem("JSON object");
+		edit_add_json_object_menu_item.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				addJSONObjectToSelection();
+			}
+		});
+		edit_add_node_menu.add(edit_add_json_object_menu_item);
+
+		JMenuItem edit_add_json_array_menu_item = new JMenuItem("JSON array");
+		edit_add_json_array_menu_item.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				addJSONArrayToSelection();
+			}
+		});
+		edit_add_node_menu.add(edit_add_json_array_menu_item);
+
+		JMenuItem edit_add_json_attribute_menu_item = new JMenuItem("JSON attribute");
+		edit_add_json_attribute_menu_item.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				addJSONAttributeToSelection();
+			}
+		});
+		edit_add_node_menu.add(edit_add_json_attribute_menu_item);
 		undo_redo_controller.addListener(this);
 
 		if (load_file_name == null)
@@ -424,7 +582,7 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 			}
 		} catch (IOException e) {
 			sb = new StringBuilder("{}");
-			JOptionPane.showMessageDialog(frmJsonExplorer, e.getMessage(), "Load file error",
+			JOptionPane.showMessageDialog(json_explorer_frame, e.getMessage(), "Load file error",
 					JOptionPane.ERROR_MESSAGE);
 		} finally {
 			//
@@ -432,7 +590,7 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 		if (parseJSON(sb.toString()))
 			undo_redo_controller.commit(copyJSONObject(root), "Load file");
 		else
-			JOptionPane.showMessageDialog(frmJsonExplorer, "This is not valid JSON.", "Parse JSON error",
+			JOptionPane.showMessageDialog(json_explorer_frame, "This is not valid JSON.", "Parse JSON error",
 					JOptionPane.ERROR_MESSAGE);
 		updateView();
 	}
@@ -443,7 +601,7 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 	private void showLoadFileDialog() {
 		JFileChooser jfc = new JFileChooser();
 		File f;
-		if (jfc.showOpenDialog(frmJsonExplorer) == JFileChooser.APPROVE_OPTION) {
+		if (jfc.showOpenDialog(json_explorer_frame) == JFileChooser.APPROVE_OPTION) {
 			f = jfc.getSelectedFile();
 			loadFile(f.getAbsolutePath());
 		}
@@ -458,12 +616,12 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 	private void showSaveFileDialog(Object o) {
 		JFileChooser jfc = new JFileChooser();
 		File f;
-		if (jfc.showSaveDialog(frmJsonExplorer) == JFileChooser.APPROVE_OPTION) {
+		if (jfc.showSaveDialog(json_explorer_frame) == JFileChooser.APPROVE_OPTION) {
 			f = jfc.getSelectedFile();
 			try (BufferedWriter bw = new BufferedWriter(new FileWriter(f))) {
 				bw.write(jsonToString(o));
 			} catch (IOException e) {
-				JOptionPane.showMessageDialog(frmJsonExplorer, e.getMessage(), "save file error",
+				JOptionPane.showMessageDialog(json_explorer_frame, e.getMessage(), "save file error",
 						JOptionPane.ERROR_MESSAGE);
 			} finally {
 				//
@@ -538,18 +696,18 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 		appendJSONNodeView(r);
 		((DefaultTreeModel) json_tree.getModel()).setRoot(r);
 		if (root instanceof JSONObject)
-			json_raw_panel_editor.getTextArea().setText(((JSONObject) root).toString(4));
+			json_raw_code_text_editor.getTextArea().setText(((JSONObject) root).toString(4));
 		else if (root instanceof JSONArray)
-			json_raw_panel_editor.getTextArea().setText(((JSONArray) root).toString(4));
+			json_raw_code_text_editor.getTextArea().setText(((JSONArray) root).toString(4));
 		else
-			json_raw_panel_editor.getTextArea().setText("");
+			json_raw_code_text_editor.getTextArea().setText("");
 	}
 
 	/**
 	 * Hide attribute configuration
 	 */
 	private void hideAttributeConfig() {
-		attribute_splitPane.setLeftComponent(json_attribute_config_label);
+		attribute_split_pane.setLeftComponent(json_attribute_config_label);
 		if (attribute_config_panel != null) {
 			attribute_config_panel.getNotifier().removeListeners();
 			attribute_config_panel.removeAll();
@@ -643,24 +801,122 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 				 */
 				@Override
 				public void onChangeType(AttributePanelEventArgs args) {
+					undo_redo_controller.commit(copyJSONObject(root), "Change type");
 					updateView();
 					showAttributeConfig(attribute_config_panel.getJSONInheritance());
 				}
 			});
-			attribute_splitPane.setLeftComponent(attribute_config_panel);
+			attribute_split_pane.setLeftComponent(attribute_config_panel);
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	/**
+	 * Remove selected node
 	 */
-	@Override
-	public void actionPerformed(ActionEvent arg0) {
-		// frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		System.exit(0);
+	private void removeSelectedNode() {
+		DefaultMutableTreeNode sn = (DefaultMutableTreeNode) json_tree.getLastSelectedPathComponent();
+		JSONInheritance ji;
+		JSONObject jo;
+		JSONArray ja;
+		String jok;
+		int jak;
+		if (sn != null) {
+			if (sn.getUserObject() instanceof JSONInheritance) {
+				ji = (JSONInheritance) sn.getUserObject();
+				if (ji.getParent() == null) {
+					root = new JSONObject();
+					undo_redo_controller.commit(copyJSONObject(root), "Remove node");
+					updateView();
+				} else {
+					if (ji.getParent().getValue() instanceof JSONObject) {
+						jo = (JSONObject) ji.getParent().getValue();
+						if (ji.getKey() instanceof String) {
+							jok = (String) ji.getKey();
+							if (jo.has(jok)) {
+								jo.remove(jok);
+								undo_redo_controller.commit(copyJSONObject(root), "Remove node");
+								updateView();
+							}
+						}
+					} else if (ji.getParent().getValue() instanceof JSONArray) {
+						ja = (JSONArray) ji.getParent().getValue();
+						if (ji.getKey() instanceof Integer) {
+							jak = ((Integer) ji.getKey()).intValue();
+							if ((ja.length() > jak) && (jak >= 0)) {
+								ja.remove(jak);
+								undo_redo_controller.commit(copyJSONObject(root), "Remove node");
+								updateView();
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private void setStringClipboard(String content) {
+		StringSelection stringSelection = new StringSelection(content);
+		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		clipboard.setContents(stringSelection, new ClipboardOwner() {
+
+			/*
+			 * (non-Javadoc)
+			 * 
+			 * @see java.awt.datatransfer.ClipboardOwner#lostOwnership(java.awt.
+			 * datatransfer.Clipboard, java.awt.datatransfer.Transferable)
+			 */
+			@Override
+			public void lostOwnership(Clipboard clipboard, Transferable contents) {
+				//
+			}
+		});
+	}
+
+	/**
+	 * Copy selected node
+	 */
+	private void copySelectedNode() {
+		DefaultMutableTreeNode sn = (DefaultMutableTreeNode) json_tree.getLastSelectedPathComponent();
+		JSONInheritance ji;
+		if (sn != null) {
+			if (sn.getUserObject() instanceof JSONInheritance) {
+				ji = (JSONInheritance) sn.getUserObject();
+				if (ji.getValue() instanceof JSONObject)
+					setStringClipboard(((JSONObject) ji.getValue()).toString(4));
+				else if (ji.getValue() instanceof JSONArray)
+					setStringClipboard(((JSONArray) ji.getValue()).toString(4));
+				else
+					setStringClipboard(ji.getValue().toString());
+			}
+		}
+	}
+
+	/**
+	 * Paste selected node
+	 */
+	private void pasteSelectedNode() {
+		//
+	}
+
+	/**
+	 * Add new JSON object to selection
+	 */
+	private void addJSONObjectToSelection() {
+		//
+	}
+
+	/**
+	 * Add new JSON array to selection
+	 */
+	private void addJSONArrayToSelection() {
+		//
+	}
+
+	/**
+	 * Add new JSON attribute to selection
+	 */
+	private void addJSONAttributeToSelection() {
+		//
 	}
 
 	/**
@@ -694,6 +950,18 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 	/*
 	 * (non-Javadoc)
 	 * 
+	 * @see
+	 * java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	@Override
+	public void actionPerformed(ActionEvent arg0) {
+		// frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+		System.exit(0);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.jsonexplorer.event.IUndoRedoControllerListener#onCommit(com.
 	 * jsonexplorer.event.UndoRedoControllerEventArgs)
 	 */
@@ -710,7 +978,7 @@ public class MainForm implements ActionListener, IUndoRedoControllerListener<Obj
 	 */
 	@Override
 	public void onUndo(UndoRedoControllerEventArgs<Object> args) {
-		root = args.getState();
+		root = copyJSONObject(args.getState());
 		updateView();
 		hideAttributeConfig();
 	}

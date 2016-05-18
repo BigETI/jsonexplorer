@@ -74,8 +74,8 @@ public class AttributePanel extends JPanel {
 		gbc_attribute_name_label.gridy = 0;
 		add(attribute_name_label, gbc_attribute_name_label);
 
-		JButton btnSaveChanges = new JButton("Save changes");
-		btnSaveChanges.addActionListener(new ActionListener() {
+		JButton save_changes_button = new JButton("Save changes");
+		save_changes_button.addActionListener(new ActionListener() {
 
 			/*
 			 * (non-Javadoc)
@@ -88,15 +88,15 @@ public class AttributePanel extends JPanel {
 				saveChanges();
 			}
 		});
-		GridBagConstraints gbc_btnSaveChanges = new GridBagConstraints();
-		gbc_btnSaveChanges.fill = GridBagConstraints.HORIZONTAL;
-		gbc_btnSaveChanges.insets = new Insets(0, 0, 5, 0);
-		gbc_btnSaveChanges.gridx = 0;
-		gbc_btnSaveChanges.gridy = 2;
-		add(btnSaveChanges, gbc_btnSaveChanges);
+		GridBagConstraints gbc_save_changes_button = new GridBagConstraints();
+		gbc_save_changes_button.fill = GridBagConstraints.HORIZONTAL;
+		gbc_save_changes_button.insets = new Insets(0, 0, 5, 0);
+		gbc_save_changes_button.gridx = 0;
+		gbc_save_changes_button.gridy = 2;
+		add(save_changes_button, gbc_save_changes_button);
 
-		JButton btnChangeType = new JButton("Change type");
-		btnChangeType.addActionListener(new ActionListener() {
+		JButton change_type_button = new JButton("Change type");
+		change_type_button.addActionListener(new ActionListener() {
 
 			/*
 			 * (non-Javadoc)
@@ -111,11 +111,11 @@ public class AttributePanel extends JPanel {
 						EAttributeTypes.values(), getAttributeType()));
 			}
 		});
-		GridBagConstraints gbc_btnChangeType = new GridBagConstraints();
-		gbc_btnChangeType.fill = GridBagConstraints.HORIZONTAL;
-		gbc_btnChangeType.gridx = 0;
-		gbc_btnChangeType.gridy = 3;
-		add(btnChangeType, gbc_btnChangeType);
+		GridBagConstraints gbc_change_type_button = new GridBagConstraints();
+		gbc_change_type_button.fill = GridBagConstraints.HORIZONTAL;
+		gbc_change_type_button.gridx = 0;
+		gbc_change_type_button.gridy = 3;
+		add(change_type_button, gbc_change_type_button);
 
 		this.json_inheritance = json_inheritance;
 		if (json_inheritance != null)

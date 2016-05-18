@@ -25,7 +25,7 @@ public class StringAttributePanel extends AttributePanel {
 	/**
 	 * Code editor
 	 */
-	private CodeTextArea value_codeTextArea;
+	private CodeTextArea value_code_editor;
 
 	/**
 	 * Constructor
@@ -40,17 +40,17 @@ public class StringAttributePanel extends AttributePanel {
 		GridBagLayout gridBagLayout = (GridBagLayout) getLayout();
 		gridBagLayout.rowWeights = new double[] { 0.0, 1.0, 0.0, 0.0 };
 
-		value_codeTextArea = new CodeTextArea();
-		value_codeTextArea.setSize(new Dimension(0, 200));
-		value_codeTextArea.setPreferredSize(new Dimension(109, 200));
-		GridBagConstraints gbc_scrollPane = new GridBagConstraints();
-		gbc_scrollPane.insets = new Insets(0, 0, 5, 5);
-		gbc_scrollPane.fill = GridBagConstraints.BOTH;
-		gbc_scrollPane.gridx = 0;
-		gbc_scrollPane.gridy = 1;
-		add(value_codeTextArea, gbc_scrollPane);
+		value_code_editor = new CodeTextArea();
+		value_code_editor.setSize(new Dimension(0, 200));
+		value_code_editor.setPreferredSize(new Dimension(109, 200));
+		GridBagConstraints gbc_value_code_editor = new GridBagConstraints();
+		gbc_value_code_editor.insets = new Insets(0, 0, 5, 5);
+		gbc_value_code_editor.fill = GridBagConstraints.BOTH;
+		gbc_value_code_editor.gridx = 0;
+		gbc_value_code_editor.gridy = 1;
+		add(value_code_editor, gbc_value_code_editor);
 
-		value_codeTextArea.getTextArea().setText(json_inheritance.getValue().toString());
+		value_code_editor.getTextArea().setText(json_inheritance.getValue().toString());
 	}
 
 	/*
@@ -60,7 +60,7 @@ public class StringAttributePanel extends AttributePanel {
 	 */
 	@Override
 	public Object getAttributeValue() {
-		return value_codeTextArea.getTextArea().getText();
+		return value_code_editor.getTextArea().getText();
 	}
 
 	/*
